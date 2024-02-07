@@ -111,6 +111,9 @@ extern (C) void syscall_handler(Proc* p) {
     case Sys.EXECVE:
         ret = sys_execve(p, a0, a1, a2);
         break;
+    case Sys.UNAME:
+	ret = sys_uname(p, cast(Utsname*) a0);
+	break;
     case Sys.IOCTL, Sys.FCNTL, Sys.PRLIMIT64, Sys.RT_SIGPROCMASK:
         ret = 0;
         break;
@@ -631,4 +634,34 @@ int sys_execve(Proc* p, uintptr path, uintptr argv, uintptr envp) {
     p.exec();
     // should not return
     assert(0, "execve");
+}
+
+enum {
+    UTSNAME_LENGTH = 65,
+}
+
+struct Utsname {
+    char[UTSNAME_LENGTH] sysname;
+    char[UTSNAME_LENGTH] nodename;
+    char[UTSNAME_LENGTH] release;
+    char[UTSNAME_LENGTH] version_;
+    char[UTSNAME_LENGTH] machine;
+}
+
+int sys_uname(Proc* p, Utsname* buf) {
+    if (!p.checkptr(cast(uintptr) buf, Utsname.sizeof)) {
+	return Err.FAULT;
+    }
+
+    void addstring(char[] data, string s) {
+	memcpy(data.ptr, s.ptr, min(s.length, data.length - 1));
+	data[$-1] = '\0';
+    }
+
+    addstring(buf.sysname, "Linux");
+    buf.nodename[0] = 0;
+    addstring(buf.release, "lfi");
+    buf.version_[0] = 0;
+    addstring(buf.machine, "aarch64");
+    return 0;
 }

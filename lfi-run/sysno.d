@@ -27,6 +27,7 @@ enum Sys {
     SET_TID_ADDRESS = 96,
     CLOCK_GETTIME   = 113,
     RT_SIGPROCMASK  = 135,
+    UNAME           = 160,
     GETPID          = 172,
     GETTID          = 178,
     SYSINFO         = 179,
